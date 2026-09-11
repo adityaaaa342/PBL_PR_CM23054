@@ -56,6 +56,8 @@ def get_graph_by_id(dataset_id):
 
 
 @app.route("/")
+@app.route("/api/index")
+@app.route("/api")
 def index():
     return render_template("index.html")
 
