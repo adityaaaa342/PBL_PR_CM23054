@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Network Community Detection | AI & Graph Analytics</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Vis.js Network Visualization Library -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Background Animated Gradient Orbs -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- Main Container -->
+    <div class="app-layout">
+        
+        <!-- Header / Navigation Bar -->
+        <header class="app-header glass-card">
+            <div class="header-left">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <div>
+                    <h1 class="header-title">Community Detection in Social Networks</h1>
+                    <p class="header-subtitle">Pattern Recognition | Aditya Mahalle <span class="badge-usn">USN: CM23054</span></p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="btn-benchmark" class="btn btn-secondary">
+                    <i class="fa-solid fa-chart-simple"></i> Compare All Algos
+                </button>
+                <button id="btn-viva-modal" class="btn btn-secondary">
+                    <i class="fa-solid fa-graduation-cap"></i> Viva & Theory Guide
+                </button>
+                <button id="btn-upload-modal" class="btn btn-secondary">
+                    <i class="fa-solid fa-upload"></i> Upload CSV
+                </button>
+                <a href="https://github.com" target="_blank" class="btn btn-primary">
+                    <i class="fa-brands fa-github"></i> View Code
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Body Grid -->
+        <main class="main-content-grid">
+            
+            <!-- Sidebar / Control Panel -->
+            <aside class="controls-sidebar glass-card">
+                
+                <!-- Dataset Selector -->
+                <div class="control-group">
+                    <label class="section-label"><i class="fa-solid fa-database"></i> Select Benchmark Network</label>
+                    <select id="dataset-select" class="form-select">
+                        <option value="football" selected>🏈 American College Football (115 nodes, 12 Conferences)</option>
+                        <option value="facebook">👥 Facebook Social Circles (78 nodes, 4 Circles)</option>
+                        <option value="coauthorship">📚 Academic Co-Authorship DBLP (120 nodes, 3 Domains)</option>
+                    </select>
+                    <div id="dataset-meta" class="dataset-meta-box">
+                        <div class="meta-item"><span class="meta-k">Nodes:</span> <span id="meta-nodes" class="meta-v">115</span></div>
+                        <div class="meta-item"><span class="meta-k">Edges:</span> <span id="meta-edges" class="meta-v">613</span></div>
+                        <div class="meta-item"><span class="meta-k">Ground Truth:</span> <span id="meta-gt" class="meta-v">12 Conferences</span></div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Selector -->
+                <div class="control-group">
+                    <label class="section-label"><i class="fa-solid fa-brain"></i> Community Detection Algorithm</label>
+                    <div class="algo-radio-grid">
+                        <label class="algo-option active">
+                            <input type="radio" name="algo" value="louvain" checked>
+                            <div class="algo-card-inner">
+                                <div class="algo-name">Louvain Method</div>
+                                <div class="algo-desc">Modularity Maximization (O(N log N))</div>
+                            </div>
+                        </label>
+                        
+                        <label class="algo-option">
+                            <input type="radio" name="algo" value="girvan_newman">
+                            <div class="algo-card-inner">
+                                <div class="algo-name">Girvan-Newman</div>
+                                <div class="algo-desc">Edge Betweenness Divisive (O(M²N))</div>
+                            </div>
+                        </label>
+                        
+                        <label class="algo-option">
+                            <input type="radio" name="algo" value="lpa">
+                            <div class="algo-card-inner">
+                                <div class="algo-name">Label Propagation (LPA)</div>
+                                <div class="algo-desc">Linear Time Dynamic Diffusion (O(M+N))</div>
+                            </div>
+                        </label>
+                        
+                        <label class="algo-option">
+                            <input type="radio" name="algo" value="spectral">
+                            <div class="algo-card-inner">
+                                <div class="algo-name">Spectral Clustering</div>
+                                <div class="algo-desc">Graph Laplacian Eigenvectors</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Hyperparameters (Context-Sensitive) -->
+                <div id="hyperparams-box" class="control-group">
+                    <label class="section-label"><i class="fa-solid fa-sliders"></i> Parameters</label>
+                    <div id="louvain-params" class="param-row">
+                        <span>Resolution: <b id="res-val">1.0</b></span>
+                        <input type="range" id="param-resolution" min="0.5" max="2.0" step="0.1" value="1.0" class="form-range">
+                    </div>
+                    <div id="target-k-params" class="param-row" style="display: none;">
+                        <span>Target Clusters (k): <b id="k-val">4</b></span>
+                        <input type="number" id="param-target-k" min="2" max="20" value="4" class="form-input">
+                    </div>
+                </div>
+
+                <!-- Run Button -->
+                <button id="btn-run" class="btn btn-action btn-glow">
+                    <i class="fa-solid fa-play"></i> Run Community Detection
+                </button>
+
+                <!-- Community Clusters Breakdown -->
+                <div class="control-group comm-breakdown-wrapper">
+                    <label class="section-label"><i class="fa-solid fa-layer-group"></i> Discovered Communities</label>
+                    <div id="communities-list" class="communities-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- Graph Canvas and Metric Display Area -->
+            <section class="graph-viewport-area">
+                
+                <!-- Metrics Bar -->
+                <div class="metrics-grid">
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon metric-cyan"><i class="fa-solid fa-circle-nodes"></i></div>
+                        <div class="metric-info">
+                            <div class="metric-title">Communities Found</div>
+                            <div class="metric-value" id="val-comms">10</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon metric-purple"><i class="fa-solid fa-chart-area"></i></div>
+                        <div class="metric-info">
+                            <div class="metric-title">Modularity (Q)</div>
+                            <div class="metric-value" id="val-modularity">0.6290</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon metric-green"><i class="fa-solid fa-bullseye"></i></div>
+                        <div class="metric-info">
+                            <div class="metric-title">NMI Accuracy</div>
+                            <div class="metric-value" id="val-nmi">91.95%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon metric-yellow"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="metric-info">
+                            <div class="metric-title">Conductance (Φ)</div>
+                            <div class="metric-value" id="val-conductance">0.2689</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glass-card">
+                        <div class="metric-icon metric-orange"><i class="fa-solid fa-bolt"></i></div>
+                        <div class="metric-info">
+                            <div class="metric-title">Runtime Speed</div>
+                            <div class="metric-value" id="val-runtime">15.8 ms</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Graph Container -->
+                <div class="graph-card glass-card">
+                    <div class="graph-toolbar">
+                        <div class="toolbar-title">
+                            <span class="status-indicator"></span>
+                            <span id="canvas-status">Interactive 2D Topology Simulation (Vis.js)</span>
+                        </div>
+                        <div class="toolbar-controls">
+                            <button id="btn-freeze-physics" class="tool-btn" title="Toggle Physics Simulation">
+                                <i class="fa-solid fa-pause"></i> Freeze Physics
+                            </button>
+                            <button id="btn-fit-zoom" class="tool-btn" title="Fit Network to Viewport">
+                                <i class="fa-solid fa-expand"></i> Fit View
+                            </button>
+                            <button id="btn-export-png" class="tool-btn" title="Export Current View as PNG">
+                                <i class="fa-solid fa-camera"></i> Screenshot
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Graph Render Area -->
+                    <div id="network-canvas" class="network-canvas">
+                        <div class="canvas-loading" id="canvas-loading">
+                            <div class="spinner"></div>
+                            <span>Running graph partitioning & force simulation...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-legend">
+                        <span><i class="fa-solid fa-circle-info"></i> Drag nodes freely. Hover to inspect community attributes and connections.</span>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal 1: Algorithm Comparison Benchmark -->
+    <div id="modal-benchmark" class="modal-backdrop">
+        <div class="modal-box glass-card modal-lg">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-chart-column"></i> Multi-Algorithm Benchmark Comparison</h2>
+                <button class="modal-close" id="close-benchmark-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Direct head-to-head evaluation of all 4 algorithms on the active network dataset.</p>
+                
+                <div class="table-container">
+                    <table class="benchmark-table" id="benchmark-table">
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Methodology</th>
+                                <th>Communities</th>
+                                <th>Modularity (Q)</th>
+                                <th>Conductance (Φ)</th>
+                                <th>NMI Score</th>
+                                <th>Runtime</th>
+                            </tr>
+                        </thead>
+                        <tbody id="benchmark-tbody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="chart-summary-cards" id="benchmark-summary">
+                    <!-- Cards populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Viva Voce & Theory Guide -->
+    <div id="modal-viva" class="modal-backdrop">
+        <div class="modal-box glass-card modal-lg">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-graduation-cap"></i> Viva Voce & Theory Defense Guide</h2>
+                <button class="modal-close" id="close-viva-modal">&times;</button>
+            </div>
+            <div class="modal-body viva-content">
+                <div class="viva-qa-item">
+                    <h4>1. What is Newman's Modularity (Q)?</h4>
+                    <p>Modularity measures whether edge density inside communities is higher than what would be expected at random. Values &gt; 0.3 indicate strong real-world community clustering structure.</p>
+                </div>
+                <div class="viva-qa-item">
+                    <h4>2. Why is Girvan-Newman slower than Louvain?</h4>
+                    <p>Girvan-Newman computes edge betweenness across all shortest paths (\(\mathcal{O}(V \cdot E)\)) after <i>every single edge removal</i> (\(\mathcal{O}(E^2 V)\)). Louvain performs fast greedy local moves in \(\mathcal{O}(V \log V)\) time.</p>
+                </div>
+                <div class="viva-qa-item">
+                    <h4>3. What is Conductance (&Phi;)?</h4>
+                    <p>Conductance is the fraction of total edges that cut outside the community boundary into the rest of the network. Lower conductance represents tighter isolation.</p>
+                </div>
+                <div class="viva-qa-item">
+                    <h4>4. How is Normalized Mutual Information (NMI) calculated?</h4>
+                    <p>NMI measures the shared statistical information between the algorithm's predicted communities and the known ground-truth factions (e.g. 12 football athletic conferences). 1.0 represents a flawless 100% match.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Custom CSV Upload -->
+    <div id="modal-upload" class="modal-backdrop">
+        <div class="modal-box glass-card">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-csv"></i> Upload Custom Edge List CSV</h2>
+                <button class="modal-close" id="close-upload-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Upload any 2-column CSV file representing network connections (<code>Source, Target</code>).</p>
+                <div class="upload-dropzone" id="dropzone">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Drag and drop your <b>.csv</b> file here, or browse</p>
+                    <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('csv-file-input').click()">Browse File</button>
+                </div>
+                <div id="upload-status" class="upload-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
