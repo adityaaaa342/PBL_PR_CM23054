@@ -20,8 +20,14 @@ from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 from datasets import get_football_network, get_facebook_circles, get_coauthorship_network
 from algorithms import detect_louvain, detect_girvan_newman, detect_label_propagation, detect_spectral
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "templates"),
+    static_folder=os.path.join(BASE_DIR, "static")
+)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
+
 
 # Cache active datasets in memory
 GRAPH_CACHE = {}
