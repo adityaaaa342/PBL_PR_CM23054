@@ -616,10 +616,153 @@
             .metrics-grid {
                 grid-template-columns: 1fr;
             }
-            .app-header {
-                flex-direction: column;
-                gap: 14px;
-                align-items: flex-start;
+        /* Node & Community Inspector Card */
+        .inspector-card {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border-left: 4px solid var(--accent-cyan);
+            margin-top: 6px;
+        }
+        .inspector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .inspector-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+        .inspector-badge-tag {
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .inspector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+        }
+        .inspector-col {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .col-header {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .target-node-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .target-node-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: inline-block;
+        }
+        .target-node-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .prediction-badge {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            width: fit-content;
+        }
+        .stat-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .stat-chip {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-card);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+        }
+        .stat-chip b {
+            color: var(--text-primary);
+        }
+        .affinity-bar-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .affinity-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+        }
+        .affinity-label-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+        }
+        .affinity-progress-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .affinity-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        .neighbors-pills {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .neighbor-pill {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-card);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+        }
+        @media (max-width: 900px) {
+            .inspector-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -823,7 +966,70 @@
                     </div>
                     
                     <div class="canvas-legend">
-                        <span><i class="fa-solid fa-circle-info"></i> Drag nodes freely. Hover to inspect community attributes and connections.</span>
+                        <span><i class="fa-solid fa-circle-info"></i> Drag nodes freely. Click any node on the graph (or pick from dropdown) to inspect its community features below.</span>
+                    </div>
+                </div>
+
+                <!-- Live Node & Community Inspector (Matching Topic Inspector) -->
+                <div class="inspector-card glass-card" id="inspector-container">
+                    <div class="inspector-header">
+                        <div class="inspector-title">
+                            <i class="fa-solid fa-microscope" style="color: var(--accent-cyan);"></i>
+                            <span>Live Node & Community Inspector</span>
+                            <span class="inspector-badge-tag">Real-Time Graph Feature Analysis</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 12px; color: var(--text-muted);"><i class="fa-solid fa-crosshairs"></i> Select Node:</span>
+                            <select id="inspector-node-select" class="form-select" style="width: 220px; padding: 6px 10px; font-size: 12px;">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="inspector-grid">
+                        <!-- Column 1: Target Node & Predicted Community -->
+                        <div class="inspector-col">
+                            <div class="col-header">
+                                <i class="fa-solid fa-bullseye"></i> Target Node & Predicted Community
+                            </div>
+                            <div class="target-node-display">
+                                <span class="target-node-dot" id="inspect-dot" style="background-color: var(--accent-cyan);"></span>
+                                <div>
+                                    <div class="target-node-name" id="inspect-name">Team_0</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);" id="inspect-sub">Degree: 9 connections | Group: #1</div>
+                                </div>
+                            </div>
+                            <div class="prediction-badge" id="inspect-pred-comm">
+                                Predicted: Community #1
+                            </div>
+                            <div class="stat-chips">
+                                <span class="stat-chip">Confidence: <b id="inspect-conf" style="color: var(--accent-green);">88.9%</b></span>
+                                <span class="stat-chip">Role: <b id="inspect-role" style="color: var(--accent-yellow);">Core Hub</b></span>
+                                <span class="stat-chip">Internal Ties: <b id="inspect-int-ties">8</b></span>
+                                <span class="stat-chip">External Cuts: <b id="inspect-ext-cuts">1</b></span>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Contributing Graph Features & Neighbor Distribution -->
+                        <div class="inspector-col">
+                            <div class="col-header">
+                                <i class="fa-solid fa-network-wired"></i> Contributing Graph Features (Neighbor Distribution)
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted);">
+                                Neighbor connection probabilities driving community assignment:
+                            </div>
+                            <div class="affinity-bar-wrap" id="inspect-affinity-bars">
+                                <!-- Populated dynamically -->
+                            </div>
+                            <div style="margin-top: 6px;">
+                                <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">
+                                    Top Contributing Neighbor Entities:
+                                </div>
+                                <div class="neighbors-pills" id="inspect-neighbors">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -918,6 +1124,8 @@
         let network = null;
         let networkData = { nodes: new vis.DataSet([]), edges: new vis.DataSet([]) };
         let physicsEnabled = true;
+        let currentGraphNodes = [];
+        let currentGraphEdges = [];
 
         document.addEventListener("DOMContentLoaded", () => {
             initApp();
@@ -1032,6 +1240,23 @@
             const fileInput = document.getElementById("csv-file-input");
             fileInput.addEventListener("change", handleFileUpload);
 
+            // Click node to inspect
+            network.on("click", (params) => {
+                if (params.nodes && params.nodes.length > 0) {
+                    inspectNode(params.nodes[0]);
+                }
+            });
+
+            // Node inspector dropdown
+            const nodeSelect = document.getElementById("inspector-node-select");
+            if (nodeSelect) {
+                nodeSelect.addEventListener("change", function() {
+                    inspectNode(this.value);
+                    network.selectNodes([this.value]);
+                    network.focus(this.value, { scale: 1.2, animation: { duration: 400 } });
+                });
+            }
+
             window.addEventListener("click", (e) => {
                 if (e.target.classList.contains("modal-backdrop")) {
                     e.target.style.display = "none";
@@ -1095,6 +1320,10 @@
 
                 renderCommunityBreakdown(data.community_breakdown);
 
+                currentGraphNodes = data.graph_data.nodes;
+                currentGraphEdges = data.graph_data.edges;
+                populateNodeInspector(currentGraphNodes, currentGraphEdges);
+
                 networkData.nodes.clear();
                 networkData.edges.clear();
                 networkData.nodes.add(data.graph_data.nodes);
@@ -1122,6 +1351,116 @@
                     <span class="meta-v">${item.size} nodes</span>
                 `;
                 container.appendChild(pill);
+            });
+        }
+
+        function populateNodeInspector(nodes, edges) {
+            currentGraphNodes = nodes;
+            currentGraphEdges = edges;
+            const select = document.getElementById("inspector-node-select");
+            if (!select) return;
+            select.innerHTML = "";
+            nodes.forEach(n => {
+                const opt = document.createElement("option");
+                opt.value = n.id;
+                opt.textContent = `${n.label || 'Node ' + n.id} (Comm #${n.group + 1})`;
+                select.appendChild(opt);
+            });
+            if (nodes.length > 0) {
+                select.value = nodes[0].id;
+                inspectNode(nodes[0].id);
+            }
+        }
+
+        function inspectNode(nodeId) {
+            const node = currentGraphNodes.find(n => String(n.id) === String(nodeId));
+            if (!node) return;
+
+            const select = document.getElementById("inspector-node-select");
+            if (select && select.value !== String(nodeId)) {
+                select.value = nodeId;
+            }
+
+            document.getElementById("inspect-name").textContent = node.label || `Node ${node.id}`;
+            const nodeColor = (node.color && node.color.background) ? node.color.background : "var(--accent-cyan)";
+            document.getElementById("inspect-dot").style.backgroundColor = nodeColor;
+
+            const connectedEdges = currentGraphEdges.filter(e => String(e.from) === String(nodeId) || String(e.to) === String(nodeId));
+            const degree = connectedEdges.length;
+            document.getElementById("inspect-sub").textContent = `Degree: ${degree} connections | Group ID: #${node.group + 1}`;
+
+            const neighborCommCount = {};
+            const neighborList = [];
+
+            connectedEdges.forEach(e => {
+                const neighborId = String(e.from) === String(nodeId) ? String(e.to) : String(e.from);
+                const neighborNode = currentGraphNodes.find(n => String(n.id) === neighborId);
+                if (neighborNode) {
+                    const grp = neighborNode.group;
+                    neighborCommCount[grp] = (neighborCommCount[grp] || 0) + 1;
+                    neighborList.push(neighborNode);
+                }
+            });
+
+            const internalTies = neighborCommCount[node.group] || 0;
+            const externalCuts = degree - internalTies;
+            const confidence = degree > 0 ? ((internalTies / degree) * 100).toFixed(1) : "100.0";
+
+            const predBadge = document.getElementById("inspect-pred-comm");
+            predBadge.textContent = `Predicted: Community #${node.group + 1}`;
+            predBadge.style.borderColor = nodeColor;
+            predBadge.style.color = nodeColor;
+            document.getElementById("inspect-conf").textContent = `${confidence}%`;
+            document.getElementById("inspect-int-ties").textContent = internalTies;
+            document.getElementById("inspect-ext-cuts").textContent = externalCuts;
+
+            let role = "Core Member";
+            if (degree >= 8 && externalCuts <= 2) role = "Core Community Hub";
+            else if (externalCuts >= 3 || (degree > 2 && externalCuts >= internalTies)) role = "Boundary Bridge";
+            else if (degree <= 2) role = "Peripheral Node";
+
+            const roleEl = document.getElementById("inspect-role");
+            roleEl.textContent = role;
+            roleEl.style.color = role.includes("Bridge") ? "var(--accent-orange)" : (role.includes("Hub") ? "var(--accent-cyan)" : "var(--accent-green)");
+
+            const affinityContainer = document.getElementById("inspect-affinity-bars");
+            affinityContainer.innerHTML = "";
+
+            const sortedGroups = Object.keys(neighborCommCount).sort((a,b) => neighborCommCount[b] - neighborCommCount[a]);
+            sortedGroups.forEach(grp => {
+                const count = neighborCommCount[grp];
+                const pct = degree > 0 ? ((count / degree) * 100).toFixed(1) : 0;
+                const repNode = currentGraphNodes.find(n => n.group === parseInt(grp));
+                const col = repNode && repNode.color ? repNode.color.background : "var(--accent-cyan)";
+
+                const barItem = document.createElement("div");
+                barItem.className = "affinity-item";
+                barItem.innerHTML = `
+                    <div class="affinity-label-row">
+                        <span><b>Community #${parseInt(grp) + 1}</b> ${parseInt(grp) === node.group ? '(Home Community)' : ''}</span>
+                        <span class="meta-v">${pct}% (${count} ties)</span>
+                    </div>
+                    <div class="affinity-progress-track">
+                        <div class="affinity-progress-fill" style="width: ${pct}%; background-color: ${col};"></div>
+                    </div>
+                `;
+                affinityContainer.appendChild(barItem);
+            });
+
+            const neighborsContainer = document.getElementById("inspect-neighbors");
+            neighborsContainer.innerHTML = "";
+            neighborList.slice(0, 8).forEach(nbr => {
+                const pill = document.createElement("span");
+                pill.className = "neighbor-pill";
+                const nColor = (nbr.color && nbr.color.background) ? nbr.color.background : "#fff";
+                pill.innerHTML = `<span style="color:${nColor}">●</span> ${nbr.label || 'Node ' + nbr.id}`;
+                pill.style.cursor = "pointer";
+                pill.title = `Click to inspect ${nbr.label || nbr.id}`;
+                pill.onclick = () => {
+                    inspectNode(nbr.id);
+                    network.selectNodes([nbr.id]);
+                };
+                neighborsContainer.appendChild(pill);
             });
         }
 
