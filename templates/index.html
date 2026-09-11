@@ -16,8 +16,613 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Embedded Glassmorphism Design System -->
+    <style>
+        :root {
+            --bg-main: #0a0e17;
+            --bg-card: rgba(18, 24, 38, 0.75);
+            --bg-card-hover: rgba(28, 36, 56, 0.85);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(0, 240, 255, 0.5);
+            
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            
+            --accent-cyan: #00F0FF;
+            --accent-magenta: #FF007F;
+            --accent-purple: #8B5CF6;
+            --accent-green: #10B981;
+            --accent-yellow: #F59E0B;
+            --accent-orange: #F97316;
+            
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-glow: 0 0 25px rgba(0, 240, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Orbs */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.25;
+        }
+        .orb-1 {
+            top: -10%;
+            left: 10%;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, var(--accent-cyan), transparent);
+        }
+        .orb-2 {
+            bottom: 5%;
+            right: 5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--accent-purple), transparent);
+        }
+        .orb-3 {
+            top: 40%;
+            left: 45%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, var(--accent-magenta), transparent);
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .app-layout {
+            position: relative;
+            z-index: 1;
+            max-width: 1680px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .logo-badge {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.35);
+        }
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #FFFFFF, #B0E0E6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .badge-usn {
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--accent-cyan);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-primary);
+            border: 1px solid var(--border-card);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        .btn-primary {
+            background: #1F2937;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary:hover {
+            background: #374151;
+        }
+        .btn-action {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff;
+            font-size: 15px;
+            padding: 13px;
+            width: 100%;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3);
+        }
+        .btn-action:hover {
+            box-shadow: 0 6px 28px rgba(0, 240, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Grid */
+        .main-content-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        /* Sidebar Controls */
+        .controls-sidebar {
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: fit-content;
+        }
+        .section-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-select, .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(10, 14, 23, 0.7);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 13px;
+            outline: none;
+            transition: border 0.2s ease;
+        }
+        .form-select:focus, .form-input:focus {
+            border-color: var(--accent-cyan);
+        }
+        .dataset-meta-box {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius-sm);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .meta-k { color: var(--text-muted); }
+        .meta-v { color: var(--accent-cyan); font-weight: 600; font-family: var(--font-mono); }
+
+        /* Algorithm Option Cards */
+        .algo-radio-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .algo-option {
+            display: block;
+            cursor: pointer;
+        }
+        .algo-option input {
+            display: none;
+        }
+        .algo-card-inner {
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+        .algo-option.active .algo-card-inner,
+        .algo-option:hover .algo-card-inner {
+            background: rgba(0, 240, 255, 0.08);
+            border-color: var(--accent-cyan);
+        }
+        .algo-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .algo-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            margin-top: 2px;
+        }
+
+        /* Hyperparams */
+        .param-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .form-range {
+            accent-color: var(--accent-cyan);
+            cursor: pointer;
+        }
+
+        /* Community Breakdown */
+        .communities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .comm-pill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+        }
+        .comm-color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Viewport */
+        .graph-viewport-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Metrics Row */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+        }
+        .metric-card {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .metric-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .metric-cyan { background: rgba(0, 240, 255, 0.15); color: var(--accent-cyan); }
+        .metric-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+        .metric-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .metric-yellow { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
+        .metric-orange { background: rgba(249, 115, 22, 0.15); color: var(--accent-orange); }
+
+        .metric-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        /* Graph Canvas Card */
+        .graph-card {
+            flex: 1;
+            min-height: 580px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        .graph-toolbar {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toolbar-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+        .toolbar-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-card);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .network-canvas {
+            flex: 1;
+            min-height: 520px;
+            position: relative;
+            background: radial-gradient(circle at center, #111827 0%, #0a0e17 100%);
+        }
+        .canvas-loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 14, 23, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 10;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(0, 240, 255, 0.2);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .canvas-legend {
+            padding: 10px 20px;
+            border-top: 1px solid var(--border-card);
+            font-size: 12px;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modals */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            width: 90%;
+            max-width: 600px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-lg {
+            max-width: 900px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-card);
+            padding-bottom: 14px;
+            margin-bottom: 16px;
+        }
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-cyan);
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .modal-close:hover { color: #fff; }
+        .modal-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        .benchmark-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .benchmark-table th, .benchmark-table td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-card);
+        }
+        .benchmark-table th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        .benchmark-table td {
+            font-family: var(--font-mono);
+        }
+        .benchmark-table td:first-child {
+            font-family: var(--font-main);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Viva */
+        .viva-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .viva-qa-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--accent-cyan);
+        }
+        .viva-qa-item h4 {
+            font-size: 14px;
+            color: var(--accent-cyan);
+            margin-bottom: 6px;
+        }
+        .viva-qa-item p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Dropzone */
+        .upload-dropzone {
+            border: 2px dashed rgba(0, 240, 255, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 36px 20px;
+            text-align: center;
+            background: rgba(0, 240, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .upload-dropzone i {
+            font-size: 40px;
+            color: var(--accent-cyan);
+        }
+
+        @media (max-width: 1200px) {
+            .main-content-grid {
+                grid-template-columns: 1fr;
+            }
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .app-header {
+                flex-direction: column;
+                gap: 14px;
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Background Animated Gradient Orbs -->
@@ -50,7 +655,7 @@
                 <button id="btn-upload-modal" class="btn btn-secondary">
                     <i class="fa-solid fa-upload"></i> Upload CSV
                 </button>
-                <a href="https://github.com" target="_blank" class="btn btn-primary">
+                <a href="https://github.com/adityaaaa342/PBL_PR_CM23054" target="_blank" class="btn btn-primary">
                     <i class="fa-brands fa-github"></i> View Code
                 </a>
             </div>
@@ -255,9 +860,7 @@
                     </table>
                 </div>
 
-                <div class="chart-summary-cards" id="benchmark-summary">
-                    <!-- Cards populated by JS -->
-                </div>
+                <div class="chart-summary-cards" id="benchmark-summary"></div>
             </div>
         </div>
     </div>
@@ -276,7 +879,7 @@
                 </div>
                 <div class="viva-qa-item">
                     <h4>2. Why is Girvan-Newman slower than Louvain?</h4>
-                    <p>Girvan-Newman computes edge betweenness across all shortest paths (\(\mathcal{O}(V \cdot E)\)) after <i>every single edge removal</i> (\(\mathcal{O}(E^2 V)\)). Louvain performs fast greedy local moves in \(\mathcal{O}(V \log V)\) time.</p>
+                    <p>Girvan-Newman computes edge betweenness across all shortest paths (O(V &times; E)) after <i>every single edge removal</i> (O(E² &times; V)). Louvain performs fast greedy local moves in O(V log V) time.</p>
                 </div>
                 <div class="viva-qa-item">
                     <h4>3. What is Conductance (&Phi;)?</h4>
@@ -310,7 +913,317 @@
         </div>
     </div>
 
-    <!-- Custom JavaScript -->
-    <script src="/static/js/main.js"></script>
+    <!-- Application Script -->
+    <script>
+        let network = null;
+        let networkData = { nodes: new vis.DataSet([]), edges: new vis.DataSet([]) };
+        let physicsEnabled = true;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initApp();
+            setupEventListeners();
+            runDetection();
+        });
+
+        function initApp() {
+            const container = document.getElementById("network-canvas");
+            const options = {
+                nodes: {
+                    shape: "dot",
+                    borderWidth: 1.5,
+                    shadow: { enabled: true, color: "rgba(0,0,0,0.6)", size: 10, x: 2, y: 2 },
+                    font: { color: "#FFFFFF", size: 10, face: "Outfit" }
+                },
+                edges: {
+                    smooth: { type: "continuous", roundness: 0.2 },
+                    selectionWidth: 2.5
+                },
+                physics: {
+                    enabled: true,
+                    solver: "forceAtlas2Based",
+                    forceAtlas2Based: {
+                        gravitationalConstant: -40,
+                        centralGravity: 0.008,
+                        springLength: 70,
+                        springConstant: 0.12,
+                        damping: 0.6
+                    },
+                    stabilization: { iterations: 150, updateInterval: 25 }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 100,
+                    navigationButtons: false,
+                    keyboard: true
+                }
+            };
+            network = new vis.Network(container, networkData, options);
+        }
+
+        function setupEventListeners() {
+            const datasetSelect = document.getElementById("dataset-select");
+            datasetSelect.addEventListener("change", () => {
+                updateDatasetMeta(datasetSelect.value);
+                runDetection();
+            });
+
+            const algoOptions = document.querySelectorAll(".algo-option");
+            algoOptions.forEach(opt => {
+                opt.addEventListener("click", () => {
+                    algoOptions.forEach(o => o.classList.remove("active"));
+                    opt.classList.add("active");
+                    const radio = opt.querySelector("input");
+                    radio.checked = true;
+                    toggleHyperparams(radio.value);
+                });
+            });
+
+            const resSlider = document.getElementById("param-resolution");
+            if (resSlider) {
+                resSlider.addEventListener("input", (e) => {
+                    document.getElementById("res-val").textContent = e.target.value;
+                });
+            }
+
+            document.getElementById("btn-run").addEventListener("click", () => {
+                runDetection();
+            });
+
+            const btnFreeze = document.getElementById("btn-freeze-physics");
+            btnFreeze.addEventListener("click", () => {
+                physicsEnabled = !physicsEnabled;
+                network.setOptions({ physics: { enabled: physicsEnabled } });
+                btnFreeze.innerHTML = physicsEnabled 
+                    ? '<i class="fa-solid fa-pause"></i> Freeze Physics' 
+                    : '<i class="fa-solid fa-play"></i> Resume Physics';
+            });
+
+            document.getElementById("btn-fit-zoom").addEventListener("click", () => {
+                network.fit({ animation: { duration: 600, easingFunction: "easeInOutQuad" } });
+            });
+
+            const modalBenchmark = document.getElementById("modal-benchmark");
+            document.getElementById("btn-benchmark").addEventListener("click", () => {
+                modalBenchmark.style.display = "flex";
+                runBenchmarkComparison();
+            });
+            document.getElementById("close-benchmark-modal").addEventListener("click", () => {
+                modalBenchmark.style.display = "none";
+            });
+
+            const modalViva = document.getElementById("modal-viva");
+            document.getElementById("btn-viva-modal").addEventListener("click", () => {
+                modalViva.style.display = "flex";
+            });
+            document.getElementById("close-viva-modal").addEventListener("click", () => {
+                modalViva.style.display = "none";
+            });
+
+            const modalUpload = document.getElementById("modal-upload");
+            document.getElementById("btn-upload-modal").addEventListener("click", () => {
+                modalUpload.style.display = "flex";
+            });
+            document.getElementById("close-upload-modal").addEventListener("click", () => {
+                modalUpload.style.display = "none";
+            });
+
+            document.getElementById("btn-export-png").addEventListener("click", takeScreenshot);
+
+            const fileInput = document.getElementById("csv-file-input");
+            fileInput.addEventListener("change", handleFileUpload);
+
+            window.addEventListener("click", (e) => {
+                if (e.target.classList.contains("modal-backdrop")) {
+                    e.target.style.display = "none";
+                }
+            });
+        }
+
+        function toggleHyperparams(algo) {
+            const louvainBox = document.getElementById("louvain-params");
+            const targetKBox = document.getElementById("target-k-params");
+            louvainBox.style.display = (algo === "louvain") ? "flex" : "none";
+            targetKBox.style.display = (algo === "girvan_newman" || algo === "spectral") ? "flex" : "none";
+        }
+
+        function updateDatasetMeta(datasetId) {
+            const metaMap = {
+                "football": { nodes: 115, edges: 613, gt: "12 Conferences" },
+                "facebook": { nodes: 78, edges: 413, gt: "4 Circles" },
+                "coauthorship": { nodes: 120, edges: 995, gt: "3 Domains" }
+            };
+            const meta = metaMap[datasetId] || { nodes: "?", edges: "?", gt: "Unsupervised" };
+            document.getElementById("meta-nodes").textContent = meta.nodes;
+            document.getElementById("meta-edges").textContent = meta.edges;
+            document.getElementById("meta-gt").textContent = meta.gt;
+        }
+
+        async function runDetection() {
+            const dataset = document.getElementById("dataset-select").value;
+            const algoInput = document.querySelector('input[name="algo"]:checked');
+            const algorithm = algoInput ? algoInput.value : "louvain";
+            const resolution = document.getElementById("param-resolution").value;
+            const targetK = document.getElementById("param-target-k").value;
+            
+            const loading = document.getElementById("canvas-loading");
+            loading.style.display = "flex";
+
+            try {
+                const response = await fetch("/api/detect", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        dataset: dataset,
+                        algorithm: algorithm,
+                        resolution: resolution,
+                        target_k: targetK
+                    })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    alert("Error running detection: " + (data.error || "Unknown"));
+                    loading.style.display = "none";
+                    return;
+                }
+
+                animateCounter("val-comms", data.num_communities);
+                document.getElementById("val-modularity").textContent = data.metrics.modularity.toFixed(4);
+                document.getElementById("val-nmi").textContent = (data.metrics.nmi !== null) ? `${(data.metrics.nmi * 100).toFixed(1)}%` : "N/A";
+                document.getElementById("val-conductance").textContent = data.metrics.conductance.toFixed(4);
+                document.getElementById("val-runtime").textContent = `${data.metrics.time_ms.toFixed(1)} ms`;
+
+                renderCommunityBreakdown(data.community_breakdown);
+
+                networkData.nodes.clear();
+                networkData.edges.clear();
+                networkData.nodes.add(data.graph_data.nodes);
+                networkData.edges.add(data.graph_data.edges);
+
+                setTimeout(() => {
+                    network.fit();
+                    loading.style.display = "none";
+                }, 300);
+
+            } catch (err) {
+                console.error("API error:", err);
+                loading.style.display = "none";
+            }
+        }
+
+        function renderCommunityBreakdown(breakdown) {
+            const container = document.getElementById("communities-list");
+            container.innerHTML = "";
+            breakdown.forEach(item => {
+                const pill = document.createElement("div");
+                pill.className = "comm-pill-item";
+                pill.innerHTML = `
+                    <span><span class="comm-color-dot" style="background-color: ${item.color};"></span> Community #${item.id}</span>
+                    <span class="meta-v">${item.size} nodes</span>
+                `;
+                container.appendChild(pill);
+            });
+        }
+
+        function animateCounter(id, targetVal) {
+            const el = document.getElementById(id);
+            let curr = 0;
+            const step = Math.max(1, Math.floor(targetVal / 10));
+            const interval = setInterval(() => {
+                curr += step;
+                if (curr >= targetVal) {
+                    el.textContent = targetVal;
+                    clearInterval(interval);
+                } else {
+                    el.textContent = curr;
+                }
+            }, 25);
+        }
+
+        async function runBenchmarkComparison() {
+            const dataset = document.getElementById("dataset-select").value;
+            const tbody = document.getElementById("benchmark-tbody");
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Running multi-algorithm benchmark...</td></tr>`;
+
+            try {
+                const res = await fetch("/api/benchmark", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ dataset: dataset })
+                });
+                const data = await res.json();
+                
+                tbody.innerHTML = "";
+                data.benchmark.forEach(row => {
+                    const tr = document.createElement("tr");
+                    const isBestMod = (row.modularity >= 0.6);
+                    tr.innerHTML = `
+                        <td><b>${row.algorithm}</b></td>
+                        <td>${getMethodology(row.algorithm)}</td>
+                        <td><span class="badge-usn">${row.communities}</span></td>
+                        <td style="color:${isBestMod ? '#00FF66' : '#F3F4F6'}">${row.modularity.toFixed(4)}</td>
+                        <td>${row.conductance.toFixed(4)}</td>
+                        <td style="color:#00F0FF">${row.nmi ? (row.nmi * 100).toFixed(1) + '%' : 'N/A'}</td>
+                        <td style="color:#F97316">${row.time_ms.toFixed(2)} ms</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Failed to run benchmark.</td></tr>`;
+            }
+        }
+
+        function getMethodology(algo) {
+            if (algo.includes("Louvain")) return "Modularity Maximization";
+            if (algo.includes("Girvan")) return "Edge Betweenness Divisive";
+            if (algo.includes("Label")) return "Linear Dynamic Consensus";
+            return "Laplacian Eigenvectors";
+        }
+
+        async function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append("file", file);
+            
+            const statusBox = document.getElementById("upload-status");
+            statusBox.textContent = "Uploading and building graph topology...";
+            
+            try {
+                const res = await fetch("/api/upload_csv", { method: "POST", body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    statusBox.innerHTML = `<span style="color:#00FF66;">Uploaded successfully! ${data.nodes} nodes, ${data.edges} edges.</span>`;
+                    
+                    const select = document.getElementById("dataset-select");
+                    const opt = document.createElement("option");
+                    opt.value = data.dataset_id;
+                    opt.textContent = `📁 ${data.name} (${data.nodes} nodes)`;
+                    select.appendChild(opt);
+                    select.value = data.dataset_id;
+                    
+                    setTimeout(() => {
+                        document.getElementById("modal-upload").style.display = "none";
+                        runDetection();
+                    }, 800);
+                } else {
+                    statusBox.innerHTML = `<span style="color:#FF453A;">Error: ${data.error}</span>`;
+                }
+            } catch (err) {
+                statusBox.innerHTML = `<span style="color:#FF453A;">Upload failed.</span>`;
+            }
+        }
+
+        function takeScreenshot() {
+            const canvas = document.querySelector("#network-canvas canvas");
+            if (!canvas) return;
+            const imgURI = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.download = `community_graph_${Date.now()}.png`;
+            link.href = imgURI;
+            link.click();
+        }
+    </script>
 </body>
 </html>

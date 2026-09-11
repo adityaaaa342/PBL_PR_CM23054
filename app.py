@@ -14,7 +14,7 @@ import json
 import networkx as nx
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 
 from datasets import get_football_network, get_facebook_circles, get_coauthorship_network
@@ -60,6 +60,11 @@ def get_graph_by_id(dataset_id):
 @app.route("/api")
 def index():
     return render_template("index.html")
+
+
+@app.route("/static/<path:filename>")
+def serve_static_file(filename):
+    return send_from_directory(os.path.join(BASE_DIR, "static"), filename)
 
 
 @app.route("/api/datasets", methods=["GET"])
