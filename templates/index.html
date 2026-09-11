@@ -814,14 +814,15 @@
                 <div class="control-group">
                     <label class="section-label"><i class="fa-solid fa-database"></i> Select Benchmark Network</label>
                     <select id="dataset-select" class="form-select">
-                        <option value="football" selected>🏈 American College Football (115 nodes, 12 Conferences)</option>
+                        <option value="student_network" selected>🎓 Student Campus Network (Aditya, Rahul, Amit - Sample CSV)</option>
+                        <option value="football">🏈 American College Football (115 nodes, 12 Conferences)</option>
                         <option value="facebook">👥 Facebook Social Circles (78 nodes, 4 Circles)</option>
                         <option value="coauthorship">📚 Academic Co-Authorship DBLP (120 nodes, 3 Domains)</option>
                     </select>
                     <div id="dataset-meta" class="dataset-meta-box">
-                        <div class="meta-item"><span class="meta-k">Nodes:</span> <span id="meta-nodes" class="meta-v">115</span></div>
-                        <div class="meta-item"><span class="meta-k">Edges:</span> <span id="meta-edges" class="meta-v">613</span></div>
-                        <div class="meta-item"><span class="meta-k">Ground Truth:</span> <span id="meta-gt" class="meta-v">12 Conferences</span></div>
+                        <div class="meta-item"><span class="meta-k">Nodes:</span> <span id="meta-nodes" class="meta-v">12</span></div>
+                        <div class="meta-item"><span class="meta-k">Edges:</span> <span id="meta-edges" class="meta-v">21</span></div>
+                        <div class="meta-item"><span class="meta-k">Ground Truth:</span> <span id="meta-gt" class="meta-v">3 Friend Circles</span></div>
                     </div>
                 </div>
 
@@ -1273,6 +1274,7 @@
 
         function updateDatasetMeta(datasetId) {
             const metaMap = {
+                "student_network": { nodes: 12, edges: 21, gt: "3 Friend Circles" },
                 "football": { nodes: 115, edges: 613, gt: "12 Conferences" },
                 "facebook": { nodes: 78, edges: 413, gt: "4 Circles" },
                 "coauthorship": { nodes: 120, edges: 995, gt: "3 Domains" }

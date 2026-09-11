@@ -142,3 +142,46 @@ def load_custom_csv(filepath):
         "description": f"Loaded from CSV: {filepath}"
     }
     return G, info
+
+def get_student_network():
+    """
+    Student Social Circles Sample Network (Aditya, Rahul, Sneha, Amit, Vikram, etc.)
+    Loaded directly from sample_social_network.csv
+    """
+    csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_social_network.csv")
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+    else:
+        df = pd.DataFrame([
+            ("Aditya","Rahul"), ("Aditya","Sneha"), ("Aditya","Pooja"), ("Rahul","Sneha"), ("Rahul","Pooja"), ("Sneha","Pooja"),
+            ("Amit","Vikram"), ("Amit","Rohan"), ("Amit","Karan"), ("Vikram","Rohan"), ("Vikram","Karan"), ("Rohan","Karan"),
+            ("Neha","Priya"), ("Neha","Ananya"), ("Neha","Tanvi"), ("Priya","Ananya"), ("Priya","Tanvi"), ("Ananya","Tanvi"),
+            ("Aditya","Amit"), ("Rahul","Neha"), ("Vikram","Priya")
+        ], columns=["Source", "Target"])
+    
+    G = nx.Graph()
+    for _, row in df.iterrows():
+        G.add_edge(str(row["Source"]), str(row["Target"]))
+        
+    ground_truth = {
+        "Aditya": 0, "Rahul": 0, "Sneha": 0, "Pooja": 0,
+        "Amit": 1, "Vikram": 1, "Rohan": 1, "Karan": 1,
+        "Neha": 2, "Priya": 2, "Ananya": 2, "Tanvi": 2
+    }
+    
+    for n in G.nodes():
+        G.nodes[n]["label"] = str(n)
+        G.nodes[n]["domain"] = "Circle #" + str(ground_truth.get(n, 0) + 1)
+        
+    info = {
+        "id": "student_network",
+        "name": "Student Campus Social Network (Aditya, Rahul, Amit...)",
+        "reference": "College Campus Sample CSV Edge List",
+        "num_nodes": G.number_of_nodes(),
+        "num_edges": G.number_of_edges(),
+        "ground_truth_k": 3,
+        "ground_truth": ground_truth,
+        "description": "12 college students interconnected across 3 natural social circles with bridge friendships."
+    }
+    return G, info
+

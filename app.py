@@ -17,7 +17,7 @@ import pandas as pd
 from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 
-from datasets import get_football_network, get_facebook_circles, get_coauthorship_network
+from datasets import get_football_network, get_facebook_circles, get_coauthorship_network, get_student_network
 from algorithms import detect_louvain, detect_girvan_newman, detect_label_propagation, detect_spectral
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +36,9 @@ def get_graph_by_id(dataset_id):
     if dataset_id in GRAPH_CACHE:
         return GRAPH_CACHE[dataset_id]
     
-    if dataset_id == "football":
+    if dataset_id == "student_network":
+        G, info = get_student_network()
+    elif dataset_id == "football":
         G, info = get_football_network()
     elif dataset_id == "facebook":
         G, info = get_facebook_circles()
@@ -70,6 +72,16 @@ def serve_static_file(filename):
 @app.route("/api/datasets", methods=["GET"])
 def api_datasets():
     datasets = [
+        {
+            "id": "student_network",
+            "name": "Student Campus Network (Aditya, Rahul, Amit - Sample CSV)",
+            "reference": "sample_social_network.csv",
+            "nodes": 12,
+            "edges": 21,
+            "ground_truth_k": 3,
+            "category": "College Campus Circles",
+            "description": "12 students (Aditya, Rahul, Sneha, Amit, Vikram, Neha...) partitioned into 3 circles with bridge ties."
+        },
         {
             "id": "football",
             "name": "American College Football Network",
