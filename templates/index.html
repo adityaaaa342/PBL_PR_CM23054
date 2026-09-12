@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social Network Community Detection | AI & Graph Analytics</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕸️</text></svg>">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -444,10 +445,17 @@
             color: #fff;
         }
         .network-canvas {
-            flex: 1;
-            min-height: 520px;
+            width: 100% !important;
+            height: 560px !important;
+            min-height: 560px !important;
             position: relative;
             background: radial-gradient(circle at center, #111827 0%, #0a0e17 100%);
+        }
+        #network-canvas-container {
+            width: 100% !important;
+            height: 560px !important;
+            min-height: 560px !important;
+            position: relative;
         }
         .canvas-loading {
             position: absolute;
@@ -471,8 +479,162 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* Canvas HUD Overlays (Matching User Reference Layout) */
+        .canvas-right-overlay {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 295px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+            pointer-events: auto;
+        }
+        .canvas-left-overlay {
+            position: absolute;
+            bottom: 48px;
+            left: 14px;
+            min-width: 190px;
+            z-index: 10;
+            pointer-events: auto;
+        }
+        .hud-card {
+            background: rgba(10, 14, 23, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            font-size: 11px;
+            color: var(--text-primary);
+        }
+        .hud-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+        .hud-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10.5px;
+        }
+        .hud-table th {
+            text-align: left;
+            padding: 3px 6px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .hud-table td {
+            padding: 4px 6px;
+            color: #E5E7EB;
+            font-family: var(--font-mono);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .hud-table td:first-child {
+            font-family: var(--font-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hud-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .betweenness-chart-wrap {
+            width: 100%;
+            height: 90px;
+            margin-top: 4px;
+        }
+        .betweenness-legend {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 0 2px;
+        }
+        .legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        .hud-insights-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .hud-insights-list li {
+            position: relative;
+            padding-left: 14px;
+            color: #D1D5DB;
+            line-height: 1.4;
+            font-size: 11px;
+        }
+        .hud-insights-list li::before {
+            content: "•";
+            color: var(--accent-cyan);
+            position: absolute;
+            left: 2px;
+            font-size: 14px;
+            top: -2px;
+        }
+        .hud-comms-items {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .hud-comm-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11px;
+            color: #E5E7EB;
+        }
+        .hud-edge-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10.5px;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 6px;
+        }
+        .hud-edge-line {
+            width: 18px;
+            height: 2px;
+            background: #6B7280;
+            display: inline-block;
+        }
+        .canvas-bottom-banner {
+            position: absolute;
+            bottom: 10px;
+            left: 14px;
+            right: 14px;
+            background: rgba(14, 165, 233, 0.1);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 7px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: #38BDF8;
+            backdrop-filter: blur(8px);
+            z-index: 10;
         }
         .canvas-legend {
             padding: 10px 20px;
@@ -616,10 +778,106 @@
             .metrics-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
         /* Node & Community Inspector Card */
         .inspector-card {
             padding: 20px 24px;
             display: flex;
+        }
+
+        /* EDA Statistics Panel */
+        .eda-panel {
+            padding: 22px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .eda-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .eda-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+        .eda-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .eda-stat-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .eda-stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .eda-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+        .eda-chart-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+        .eda-chart-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        @media (max-width: 900px) {
+            .eda-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Benchmark Chart */
+        .benchmark-chart-box {
+            margin-top: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+        .benchmark-chart-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        /* Dropzone active state */
+        .upload-dropzone.drag-over {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.08);
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        .inspector-card {
             flex-direction: column;
             gap: 16px;
             border-left: 4px solid var(--accent-cyan);
@@ -861,6 +1119,14 @@
                                 <div class="algo-desc">Graph Laplacian Eigenvectors</div>
                             </div>
                         </label>
+                        
+                        <label class="algo-option">
+                            <input type="radio" name="algo" value="leiden">
+                            <div class="algo-card-inner">
+                                <div class="algo-name">Leiden Algorithm</div>
+                                <div class="algo-desc">Improved Louvain (Well-Connected)</div>
+                            </div>
+                        </label>
                     </div>
                 </div>
 
@@ -958,11 +1224,71 @@
                         </div>
                     </div>
                     
-                    <!-- Graph Render Area -->
-                    <div id="network-canvas" class="network-canvas">
+                    <!-- Graph Render Area with Reference HUD Overlays -->
+                    <div id="network-canvas-container" style="position: relative; width: 100%; height: 560px; min-height: 560px; overflow: hidden;">
+                        <div id="network-canvas" class="network-canvas" style="position: relative; width: 100%; height: 560px; min-height: 560px;"></div>
                         <div class="canvas-loading" id="canvas-loading">
                             <div class="spinner"></div>
                             <span>Running graph partitioning & force simulation...</span>
+                        </div>
+
+                        <!-- Top-Right Panel: Community Statistics & Edge Betweenness or Key Insights -->
+                        <div id="canvas-right-panel" class="canvas-right-overlay">
+                            <!-- Card 1: Community Statistics Table -->
+                            <div id="card-comm-stats" class="hud-card">
+                                <div class="hud-header">Community Statistics</div>
+                                <table class="hud-table" id="hud-stats-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Community</th>
+                                            <th>Nodes</th>
+                                            <th>Internal Edges</th>
+                                            <th>Density</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hud-stats-tbody">
+                                        <!-- Dynamically populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Card 2: Edge Betweenness Distribution -->
+                            <div id="card-edge-betweenness" class="hud-card">
+                                <div class="hud-header">Edge Betweenness Distribution</div>
+                                <div class="betweenness-chart-wrap">
+                                    <canvas id="canvas-edge-betweenness" width="265" height="90"></canvas>
+                                </div>
+                                <div class="betweenness-legend">
+                                    <span><span class="legend-dot" style="background:#FF453A;"></span> Inter-community edges</span>
+                                    <span><span class="legend-dot" style="background:#00F0FF;"></span> Intra-community edges</span>
+                                </div>
+                                <div style="font-size: 9.5px; color: var(--text-muted); text-align: center; margin-top: 3px;">Edges (sorted)</div>
+                            </div>
+
+                            <!-- Card 3: Key Insights -->
+                            <div id="card-key-insights" class="hud-card">
+                                <div class="hud-header">💡 Key Insights</div>
+                                <ul class="hud-insights-list" id="hud-insights-ul">
+                                    <!-- Dynamically populated -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Bottom-Left Legend Card -->
+                        <div id="card-detected-comms" class="canvas-left-overlay hud-card">
+                            <div class="hud-header" id="hud-left-title">Detected Communities</div>
+                            <div id="hud-comms-list" class="hud-comms-items">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <div class="hud-edge-summary" id="hud-edge-summary">
+                                <span class="hud-edge-line"></span> <span id="hud-edge-summary-text">Inter-community edges (4 total)</span>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Info Banner -->
+                        <div id="canvas-bottom-banner" class="canvas-bottom-banner">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span id="canvas-bottom-banner-text">Girvan-Newman iteratively removes high betweenness edges to reveal community structure.</span>
                         </div>
                     </div>
                     
@@ -1034,6 +1360,42 @@
                     </div>
                 </div>
 
+                <!-- EDA Network Statistics Panel -->
+                <div class="eda-panel glass-card" id="eda-panel">
+                    <div class="eda-header">
+                        <div class="eda-title">
+                            <i class="fa-solid fa-chart-bar" style="color: var(--accent-purple);"></i>
+                            <span>Network Statistics & EDA</span>
+                            <span class="inspector-badge-tag">Exploratory Data Analysis</span>
+                        </div>
+                        <button class="tool-btn" id="btn-refresh-eda" title="Refresh EDA Stats">
+                            <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="eda-stats-grid">
+                        <div class="eda-stat-card">
+                            <span class="eda-stat-label">Avg. Degree</span>
+                            <span class="eda-stat-value" id="eda-avg-degree" style="color: var(--accent-cyan);">—</span>
+                        </div>
+                        <div class="eda-stat-card">
+                            <span class="eda-stat-label">Graph Density</span>
+                            <span class="eda-stat-value" id="eda-density" style="color: var(--accent-purple);">—</span>
+                        </div>
+                        <div class="eda-stat-card">
+                            <span class="eda-stat-label">Avg. Clustering Coeff.</span>
+                            <span class="eda-stat-value" id="eda-clustering" style="color: var(--accent-green);">—</span>
+                        </div>
+                        <div class="eda-stat-card">
+                            <span class="eda-stat-label">Connected Components</span>
+                            <span class="eda-stat-value" id="eda-components" style="color: var(--accent-yellow);">—</span>
+                        </div>
+                    </div>
+                    <div class="eda-chart-box">
+                        <div class="eda-chart-title"><i class="fa-solid fa-chart-column"></i> Degree Distribution Histogram</div>
+                        <canvas id="eda-degree-canvas" width="800" height="200" style="width: 100%; height: 200px;"></canvas>
+                    </div>
+                </div>
+
             </section>
         </main>
     </div>
@@ -1065,6 +1427,11 @@
                             <!-- Populated dynamically -->
                         </tbody>
                     </table>
+                </div>
+
+                <div class="benchmark-chart-box">
+                    <div class="benchmark-chart-title"><i class="fa-solid fa-chart-column"></i> Modularity & NMI Comparison</div>
+                    <canvas id="benchmark-chart-canvas" width="800" height="220" style="width: 100%; height: 220px;"></canvas>
                 </div>
 
                 <div class="chart-summary-cards" id="benchmark-summary"></div>
@@ -1137,11 +1504,14 @@
         function initApp() {
             const container = document.getElementById("network-canvas");
             const options = {
+                autoResize: true,
+                height: "560px",
+                width: "100%",
                 nodes: {
                     shape: "dot",
-                    borderWidth: 1.5,
+                    borderWidth: 2,
                     shadow: { enabled: true, color: "rgba(0,0,0,0.6)", size: 10, x: 2, y: 2 },
-                    font: { color: "#FFFFFF", size: 10, face: "Outfit" }
+                    font: { color: "#FFFFFF", size: 12, face: "Outfit", strokeWidth: 3, strokeColor: "#0a0e17" }
                 },
                 edges: {
                     smooth: { type: "continuous", roundness: 0.2 },
@@ -1208,7 +1578,11 @@
             });
 
             document.getElementById("btn-fit-zoom").addEventListener("click", () => {
-                network.fit({ animation: { duration: 600, easingFunction: "easeInOutQuad" } });
+                if (network) {
+                    network.setSize("100%", "560px");
+                    network.redraw();
+                    network.fit({ animation: { duration: 600, easingFunction: "easeInOutQuad" } });
+                }
             });
 
             const modalBenchmark = document.getElementById("modal-benchmark");
@@ -1263,12 +1637,42 @@
                     e.target.style.display = "none";
                 }
             });
+
+            // Drag-and-drop handlers for upload dropzone
+            const dropzone = document.getElementById("dropzone");
+            if (dropzone) {
+                ['dragenter', 'dragover'].forEach(evtName => {
+                    dropzone.addEventListener(evtName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.add('drag-over');
+                    });
+                });
+                ['dragleave', 'drop'].forEach(evtName => {
+                    dropzone.addEventListener(evtName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.remove('drag-over');
+                    });
+                });
+                dropzone.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0 && files[0].name.endsWith('.csv')) {
+                        const fileInput = document.getElementById('csv-file-input');
+                        fileInput.files = files;
+                        fileInput.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            // EDA refresh button
+            document.getElementById('btn-refresh-eda').addEventListener('click', fetchEDA);
         }
 
         function toggleHyperparams(algo) {
             const louvainBox = document.getElementById("louvain-params");
             const targetKBox = document.getElementById("target-k-params");
-            louvainBox.style.display = (algo === "louvain") ? "flex" : "none";
+            louvainBox.style.display = (algo === "louvain" || algo === "leiden") ? "flex" : "none";
             targetKBox.style.display = (algo === "girvan_newman" || algo === "spectral") ? "flex" : "none";
         }
 
@@ -1293,7 +1697,7 @@
             const targetK = document.getElementById("param-target-k").value;
             
             const loading = document.getElementById("canvas-loading");
-            loading.style.display = "flex";
+            if (loading) loading.style.display = "flex";
 
             try {
                 const response = await fetch("/api/detect", {
@@ -1310,7 +1714,7 @@
                 const data = await response.json();
                 if (!data.success) {
                     alert("Error running detection: " + (data.error || "Unknown"));
-                    loading.style.display = "none";
+                    if (loading) loading.style.display = "none";
                     return;
                 }
 
@@ -1332,13 +1736,21 @@
                 networkData.edges.add(data.graph_data.edges);
 
                 setTimeout(() => {
-                    network.fit();
-                    loading.style.display = "none";
-                }, 300);
+                    if (network) {
+                        network.setSize("100%", "560px");
+                        network.redraw();
+                        network.fit({
+                            nodes: data.graph_data.nodes.map(n => n.id),
+                            animation: { duration: 400, easingFunction: "easeInOutQuad" }
+                        });
+                    }
+                    if (loading) loading.style.display = "none";
+                    fetchEDA();
+                }, 200);
 
             } catch (err) {
                 console.error("API error:", err);
-                loading.style.display = "none";
+                if (loading) loading.style.display = "none";
             }
         }
 
@@ -1509,6 +1921,8 @@
                     `;
                     tbody.appendChild(tr);
                 });
+                // Render the comparative bar chart
+                renderBenchmarkChart(data.benchmark);
             } catch (err) {
                 tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Failed to run benchmark.</td></tr>`;
             }
@@ -1518,6 +1932,7 @@
             if (algo.includes("Louvain")) return "Modularity Maximization";
             if (algo.includes("Girvan")) return "Edge Betweenness Divisive";
             if (algo.includes("Label")) return "Linear Dynamic Consensus";
+            if (algo.includes("Leiden")) return "Guaranteed Well-Connected";
             return "Laplacian Eigenvectors";
         }
 
@@ -1564,6 +1979,197 @@
             link.download = `community_graph_${Date.now()}.png`;
             link.href = imgURI;
             link.click();
+        }
+
+        // ================================================================
+        // EDA Panel: Fetch stats and render degree histogram
+        // ================================================================
+        async function fetchEDA() {
+            const dataset = document.getElementById("dataset-select").value;
+            try {
+                const res = await fetch("/api/eda", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ dataset: dataset })
+                });
+                const data = await res.json();
+                if (!data.success) return;
+
+                document.getElementById("eda-avg-degree").textContent = data.avg_degree.toFixed(2);
+                document.getElementById("eda-density").textContent = data.density.toFixed(4);
+                document.getElementById("eda-clustering").textContent = data.avg_clustering.toFixed(4);
+                document.getElementById("eda-components").textContent = data.num_components;
+
+                renderDegreeHistogram(data.degree_hist);
+            } catch (err) {
+                console.error("EDA fetch error:", err);
+            }
+        }
+
+        function renderDegreeHistogram(histData) {
+            const canvas = document.getElementById("eda-degree-canvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+            const W = canvas.clientWidth;
+            const H = canvas.clientHeight;
+
+            ctx.clearRect(0, 0, W, H);
+
+            const counts = histData.counts || [];
+            const edges = histData.bin_edges || [];
+            if (counts.length === 0) return;
+
+            const maxCount = Math.max(...counts);
+            const padding = { top: 10, right: 20, bottom: 30, left: 40 };
+            const chartW = W - padding.left - padding.right;
+            const chartH = H - padding.top - padding.bottom;
+            const barW = chartW / counts.length;
+
+            // Gradient fill
+            const grad = ctx.createLinearGradient(0, padding.top, 0, H - padding.bottom);
+            grad.addColorStop(0, "rgba(0, 240, 255, 0.9)");
+            grad.addColorStop(1, "rgba(139, 92, 246, 0.6)");
+
+            // Draw bars
+            counts.forEach((count, i) => {
+                const barH = maxCount > 0 ? (count / maxCount) * chartH : 0;
+                const x = padding.left + i * barW;
+                const y = padding.top + chartH - barH;
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.roundRect(x + 1, y, barW - 2, barH, [3, 3, 0, 0]);
+                ctx.fill();
+            });
+
+            // X-axis labels
+            ctx.fillStyle = "#6B7280";
+            ctx.font = "10px 'Outfit', sans-serif";
+            ctx.textAlign = "center";
+            const labelStep = Math.max(1, Math.floor(counts.length / 8));
+            for (let i = 0; i < edges.length; i += labelStep) {
+                const x = padding.left + (i / counts.length) * chartW;
+                ctx.fillText(Math.round(edges[i]), x, H - 8);
+            }
+
+            // Y-axis labels
+            ctx.textAlign = "right";
+            for (let i = 0; i <= 4; i++) {
+                const val = Math.round((maxCount / 4) * i);
+                const y = padding.top + chartH - (chartH / 4) * i;
+                ctx.fillText(val, padding.left - 6, y + 3);
+                // Grid line
+                ctx.strokeStyle = "rgba(255,255,255,0.05)";
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(W - padding.right, y);
+                ctx.stroke();
+            }
+
+            // Axis label
+            ctx.fillStyle = "#9CA3AF";
+            ctx.font = "11px 'Outfit', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Node Degree →", W / 2, H - 1);
+        }
+
+        // ================================================================
+        // Benchmark Bar Chart
+        // ================================================================
+        function renderBenchmarkChart(benchmarkData) {
+            const canvas = document.getElementById("benchmark-chart-canvas");
+            if (!canvas || !benchmarkData || benchmarkData.length === 0) return;
+            const ctx = canvas.getContext("2d");
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+            const W = canvas.clientWidth;
+            const H = canvas.clientHeight;
+
+            ctx.clearRect(0, 0, W, H);
+
+            const algos = benchmarkData.map(r => r.algorithm);
+            const n = algos.length;
+            const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+            const chartW = W - padding.left - padding.right;
+            const chartH = H - padding.top - padding.bottom;
+            const groupW = chartW / n;
+            const barW = groupW / 3.5;
+
+            const colors = {
+                mod: "rgba(0, 240, 255, 0.85)",
+                nmi: "rgba(16, 185, 129, 0.85)",
+                cond: "rgba(249, 115, 22, 0.85)"
+            };
+
+            algos.forEach((algo, i) => {
+                const row = benchmarkData[i];
+                const x0 = padding.left + i * groupW + groupW * 0.1;
+
+                // Modularity bar
+                const modH = row.modularity * chartH;
+                ctx.fillStyle = colors.mod;
+                ctx.beginPath();
+                ctx.roundRect(x0, padding.top + chartH - modH, barW, modH, [3, 3, 0, 0]);
+                ctx.fill();
+
+                // NMI bar
+                const nmiVal = row.nmi || 0;
+                const nmiH = nmiVal * chartH;
+                ctx.fillStyle = colors.nmi;
+                ctx.beginPath();
+                ctx.roundRect(x0 + barW + 2, padding.top + chartH - nmiH, barW, nmiH, [3, 3, 0, 0]);
+                ctx.fill();
+
+                // Conductance bar (inverted: lower is better, so show 1-cond)
+                const condH = (1 - row.conductance) * chartH;
+                ctx.fillStyle = colors.cond;
+                ctx.beginPath();
+                ctx.roundRect(x0 + (barW + 2) * 2, padding.top + chartH - condH, barW, condH, [3, 3, 0, 0]);
+                ctx.fill();
+
+                // Labels
+                ctx.fillStyle = "#9CA3AF";
+                ctx.font = "11px 'Outfit', sans-serif";
+                ctx.textAlign = "center";
+                const labelParts = algo.split(" ");
+                ctx.fillText(labelParts[0], x0 + groupW * 0.4, H - padding.bottom + 16);
+                if (labelParts[1]) {
+                    ctx.fillText(labelParts.slice(1).join(" "), x0 + groupW * 0.4, H - padding.bottom + 28);
+                }
+            });
+
+            // Y-axis
+            ctx.fillStyle = "#6B7280";
+            ctx.font = "10px 'Outfit', sans-serif";
+            ctx.textAlign = "right";
+            for (let i = 0; i <= 5; i++) {
+                const val = (i / 5).toFixed(1);
+                const y = padding.top + chartH - (chartH / 5) * i;
+                ctx.fillText(val, padding.left - 6, y + 3);
+                ctx.strokeStyle = "rgba(255,255,255,0.04)";
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(W - padding.right, y);
+                ctx.stroke();
+            }
+
+            // Legend
+            const legendX = W - 200;
+            const legendY = 12;
+            [{label: "Modularity", color: colors.mod}, {label: "NMI", color: colors.nmi}, {label: "1−Conductance", color: colors.cond}].forEach((item, idx) => {
+                ctx.fillStyle = item.color;
+                ctx.fillRect(legendX + idx * 70, legendY, 10, 10);
+                ctx.fillStyle = "#9CA3AF";
+                ctx.font = "10px 'Outfit', sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText(item.label, legendX + idx * 70 + 14, legendY + 9);
+            });
         }
     </script>
 </body>

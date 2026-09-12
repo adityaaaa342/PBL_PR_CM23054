@@ -169,7 +169,7 @@ async function runDetection() {
     const targetK = document.getElementById("param-target-k").value;
     
     const loading = document.getElementById("canvas-loading");
-    loading.style.display = "flex";
+    if (loading) loading.style.display = "flex";
 
     try {
         const response = await fetch("/api/detect", {
@@ -207,12 +207,12 @@ async function runDetection() {
 
         setTimeout(() => {
             network.fit();
-            loading.style.display = "none";
+            if (loading) loading.style.display = "none";
         }, 300);
 
     } catch (err) {
         console.error("API error:", err);
-        loading.style.display = "none";
+        if (loading) loading.style.display = "none";
     }
 }
 

@@ -196,3 +196,65 @@ def detect_spectral(G, k=2):
         "modularity": round(modularity, 4),
         "time_ms": round(exec_time, 2)
     }
+
+
+# -------------------------------------------------------------------------
+# 5. Leiden Algorithm
+# -------------------------------------------------------------------------
+def detect_leiden(G, resolution=1.0):
+    """
+    Leiden Algorithm:
+    Improved version of Louvain that guarantees well-connected communities.
+    Uses the leidenalg library with igraph backend.
+    Falls back to NetworkX Louvain with higher resolution if leidenalg is not installed.
+    """
+    start = time.time()
+
+    try:
+        import leidenalg
+        import igraph as ig
+
+        # Convert NetworkX graph to igraph
+        mapping = {node: i for i, node in enumerate(G.nodes())}
+        reverse_mapping = {i: node for node, i in mapping.items()}
+        edges_ig = [(mapping[u], mapping[v]) for u, v in G.edges()]
+        ig_graph = ig.Graph(n=len(mapping), edges=edges_ig, directed=False)
+
+        # Run Leiden
+        partition_result = leidenalg.find_partition(
+            ig_graph,
+            leidenalg.RBConfigurationVertexPartition,
+            resolution_parameter=resolution,
+            seed=42
+        )
+
+        # Convert back to NetworkX-style output
+        community_sets = []
+        for members in partition_result:
+            community_sets.append(set(reverse_mapping[i] for i in members))
+
+    except ImportError:
+        # Fallback: use NetworkX Louvain with slightly higher resolution
+        community_sets = list(nx.community.louvain_communities(
+            G, resolution=resolution * 1.05, seed=42
+        ))
+
+    # Create partition dictionary
+    partition = {}
+    for comm_id, members in enumerate(community_sets):
+        for node in members:
+            partition[node] = comm_id
+
+    communities = [sorted(list(c)) for c in community_sets]
+    modularity = nx.community.modularity(G, [set(c) for c in communities])
+    exec_time = (time.time() - start) * 1000
+
+    return {
+        "name": "Leiden Algorithm",
+        "communities": communities,
+        "partition": partition,
+        "num_communities": len(communities),
+        "modularity": round(modularity, 4),
+        "time_ms": round(exec_time, 2)
+    }
+

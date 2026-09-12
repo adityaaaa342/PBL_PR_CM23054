@@ -18,7 +18,7 @@ from flask import Flask, render_template, request, jsonify, send_file, send_from
 from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 
 from datasets import get_football_network, get_facebook_circles, get_coauthorship_network, get_student_network
-from algorithms import detect_louvain, detect_girvan_newman, detect_label_propagation, detect_spectral
+from algorithms import detect_louvain, detect_girvan_newman, detect_label_propagation, detect_spectral, detect_leiden
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(
@@ -62,6 +62,11 @@ def get_graph_by_id(dataset_id):
 @app.route("/api")
 def index():
     return render_template("index.html")
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return ('', 204)
 
 
 @app.route("/static/<path:filename>")
@@ -139,6 +144,8 @@ def api_detect():
     elif algorithm == "spectral":
         k_val = int(target_k) if target_k else info.get("ground_truth_k", 3)
         result = detect_spectral(G, k=k_val)
+    elif algorithm == "leiden":
+        result = detect_leiden(G, resolution=resolution)
     else:
         result = detect_louvain(G)
     
@@ -170,10 +177,18 @@ def api_detect():
     # Prepare Vis.js graph nodes and edges
     # Community color palette
     palette = [
-        "#00F0FF", "#FF007F", "#7000FF", "#00FF66", "#FFE600",
-        "#FF6B00", "#9D00FF", "#00E5FF", "#FF2A85", "#00FFA3",
-        "#FFB800", "#7B61FF", "#FF453A", "#30D158", "#BF5AF2"
+        "#00F0FF",  # Blue / Cyan
+        "#FF453A",  # Red / Coral
+        "#30D158",  # Green
+        "#FFE600",  # Yellow
+        "#BF5AF2",  # Purple
+        "#FF9F0A",  # Orange
+        "#00FFA3",  # Mint
+        "#7000FF",  # Deep Violet
+        "#FF2A85",  # Pink
+        "#00E5FF"   # Sky Blue
     ]
+    color_names = ["Blue", "Red", "Green", "Yellow", "Purple", "Orange", "Mint", "Violet"]
     
     # Generate spring layout for smooth initial coordinates
     pos = nx.spring_layout(G, seed=42, k=0.15)
@@ -203,20 +218,84 @@ def api_detect():
         })
         
     edge_list = []
+    inter_edges_count = 0
     for u, v in G.edges():
         same_comm = partition.get(u) == partition.get(v)
-        edge_color = palette[partition.get(u, 0) % len(palette)] if same_comm else "#4A5568"
+        if not same_comm:
+            inter_edges_count += 1
+        edge_color = palette[partition.get(u, 0) % len(palette)] if same_comm else "#6B7280"
         edge_list.append({
             "from": str(u),
             "to": str(v),
-            "color": {"color": edge_color, "opacity": 0.45 if same_comm else 0.15},
-            "width": 1.5 if same_comm else 0.8
+            "color": edge_color,
+            "width": 1.8 if same_comm else 0.8
         })
         
     # Community breakdown distribution
     community_sizes = [{"id": cid + 1, "size": len(c), "color": palette[cid % len(palette)]} for cid, c in enumerate(communities)]
     community_sizes = sorted(community_sizes, key=lambda x: x["size"], reverse=True)
-    
+
+    # Detailed Community Statistics (nodes, internal edges, density)
+    community_stats = []
+    for cid, c_nodes in enumerate(communities):
+        c_set = set(c_nodes)
+        subG = G.subgraph(c_set)
+        n_nodes = len(c_nodes)
+        n_internal_edges = subG.number_of_edges()
+        density = round((2.0 * n_internal_edges) / (n_nodes * (n_nodes - 1)), 2) if n_nodes > 1 else 1.0
+        c_color = palette[cid % len(palette)]
+        c_name = color_names[cid % len(color_names)]
+        community_stats.append({
+            "id": cid + 1,
+            "name": f"{cid + 1} ({c_name})",
+            "color": c_color,
+            "nodes": n_nodes,
+            "internal_edges": n_internal_edges,
+            "density": f"{density:.2f}"
+        })
+
+    # Edge Betweenness Distribution (for Girvan-Newman or general inspection)
+    edge_betweenness = []
+    try:
+        eb_dict = nx.edge_betweenness_centrality(G)
+        sorted_eb = sorted(eb_dict.items(), key=lambda x: x[1], reverse=True)
+        for (u, v), score in sorted_eb[:12]:
+            is_inter = partition.get(u) != partition.get(v)
+            edge_betweenness.append({
+                "edge": f"{u}-{v}",
+                "score": round(score, 3),
+                "is_inter": is_inter
+            })
+    except Exception:
+        edge_betweenness = []
+
+    # Key Insights bullets
+    insights = [
+        f"{len(communities)} communities detected",
+        "Good separation between groups" if modularity >= 0.4 else "Moderate community overlap observed",
+        f"Modularity Q = {round(modularity, 4)}",
+    ]
+    if algorithm == "spectral":
+        insights.append("Spectral clustering uses Laplacian eigenvectors for partitioning")
+    elif algorithm == "girvan_newman":
+        insights.append(f"{inter_edges_count} inter-community bottleneck edges identified")
+    elif algorithm == "louvain":
+        insights.append("Fast modularity maximization via greedy hierarchical node moves")
+    elif algorithm == "leiden":
+        insights.append("Leiden refinement ensures all sub-communities are well-connected")
+    elif algorithm == "lpa":
+        insights.append("Dynamic label diffusion achieved neighboring consensus")
+
+    # Algorithm explanatory tagline
+    algo_taglines = {
+        "girvan_newman": "Girvan-Newman iteratively removes high betweenness edges to reveal community structure.",
+        "louvain": "Louvain maximizes modularity through greedy local community aggregation in two recurring phases.",
+        "leiden": "Leiden improves Louvain by guaranteeing well-connected communities and fast modularity refinement.",
+        "spectral": "Spectral clustering projects network adjacency into Laplacian eigenvector space before k-means partitioning.",
+        "lpa": "Label Propagation diffuses community labels dynamically across neighboring nodes until consensus."
+    }
+    explanation = algo_taglines.get(algorithm, "Community detection discovers cohesive user clusters.")
+
     return jsonify({
         "success": True,
         "dataset_name": info["name"],
@@ -224,6 +303,8 @@ def api_detect():
         "num_nodes": G.number_of_nodes(),
         "num_edges": G.number_of_edges(),
         "num_communities": len(communities),
+        "inter_edges_count": inter_edges_count,
+        "intra_edges_count": G.number_of_edges() - inter_edges_count,
         "metrics": {
             "modularity": round(modularity, 4),
             "conductance": round(avg_conductance, 4),
@@ -232,6 +313,10 @@ def api_detect():
             "time_ms": round(exec_time_ms, 2)
         },
         "community_breakdown": community_sizes,
+        "community_stats": community_stats,
+        "edge_betweenness": edge_betweenness,
+        "insights": insights,
+        "explanation": explanation,
         "graph_data": {
             "nodes": node_list,
             "edges": edge_list
@@ -260,11 +345,15 @@ def api_benchmark():
     # 4. Spectral
     res_spectral = detect_spectral(G, k=k_val if k_val else 3)
     
+    # 5. Leiden
+    res_leiden = detect_leiden(G)
+    
     algos = [
         ("Louvain", res_louvain),
         ("Girvan-Newman", res_gn),
         ("Label Propagation", res_lpa),
-        ("Spectral Clustering", res_spectral)
+        ("Spectral Clustering", res_spectral),
+        ("Leiden", res_leiden)
     ]
     
     results = []
@@ -300,6 +389,51 @@ def api_benchmark():
         "num_nodes": G.number_of_nodes(),
         "num_edges": G.number_of_edges(),
         "benchmark": results
+    })
+
+
+
+@app.route("/api/eda", methods=["POST"])
+def api_eda():
+    """Return network-level statistics and degree distribution for the EDA panel."""
+    data = request.get_json() or {}
+    dataset_id = data.get("dataset", "football")
+    
+    G, info = get_graph_by_id(dataset_id)
+    
+    degrees = [d for _, d in G.degree()]
+    avg_degree = float(np.mean(degrees)) if degrees else 0.0
+    density = float(nx.density(G))
+    
+    try:
+        avg_clustering = float(nx.average_clustering(G))
+    except Exception:
+        avg_clustering = 0.0
+    
+    num_components = nx.number_connected_components(G)
+    
+    # Degree distribution histogram (bin counts)
+    if degrees:
+        max_deg = max(degrees)
+        num_bins = min(max_deg + 1, 25)
+        hist_counts, bin_edges = np.histogram(degrees, bins=num_bins)
+        degree_hist = {
+            "counts": hist_counts.tolist(),
+            "bin_edges": [round(float(b), 1) for b in bin_edges]
+        }
+    else:
+        degree_hist = {"counts": [], "bin_edges": []}
+    
+    return jsonify({
+        "success": True,
+        "dataset_name": info["name"],
+        "num_nodes": G.number_of_nodes(),
+        "num_edges": G.number_of_edges(),
+        "avg_degree": round(avg_degree, 2),
+        "density": round(density, 4),
+        "avg_clustering": round(avg_clustering, 4),
+        "num_components": num_components,
+        "degree_hist": degree_hist
     })
 
 
