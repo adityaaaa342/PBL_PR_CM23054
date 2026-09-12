@@ -1212,8 +1212,8 @@
                             <span id="canvas-status">Interactive 2D Topology Simulation (Vis.js)</span>
                         </div>
                         <div class="toolbar-controls">
-                            <button id="btn-freeze-physics" class="tool-btn" title="Toggle Physics Simulation">
-                                <i class="fa-solid fa-pause"></i> Freeze Physics
+                            <button id="btn-freeze-physics" class="tool-btn" title="Toggle Physics Animation">
+                                <i class="fa-solid fa-pause"></i> Pause Animation
                             </button>
                             <button id="btn-fit-zoom" class="tool-btn" title="Fit Network to Viewport">
                                 <i class="fa-solid fa-expand"></i> Fit View
@@ -1501,6 +1501,15 @@
             runDetection();
         });
 
+        function hexToRgba(hex, alpha) {
+            if (!hex) return `rgba(0, 240, 255, ${alpha})`;
+            let c = hex.replace("#", "");
+            if (c.length === 3) c = c.split("").map(x => x + x).join("");
+            const num = parseInt(c, 16);
+            if (isNaN(num)) return `rgba(0, 240, 255, ${alpha})`;
+            return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+        }
+
         function initApp() {
             const container = document.getElementById("network-canvas");
             const options = {
@@ -1523,9 +1532,9 @@
                     forceAtlas2Based: {
                         gravitationalConstant: -40,
                         centralGravity: 0.008,
-                        springLength: 70,
-                        springConstant: 0.12,
-                        damping: 0.6
+                        springLength: 75,
+                        springConstant: 0.1,
+                        damping: 0.5
                     },
                     stabilization: { iterations: 150, updateInterval: 25 }
                 },
@@ -1537,6 +1546,53 @@
                 }
             };
             network = new vis.Network(container, networkData, options);
+
+            // Draw dashed boundary circles around detected communities (Matching reference screenshots)
+            network.on("beforeDrawing", function(ctx) {
+                if (!currentGraphNodes || currentGraphNodes.length === 0) return;
+
+                const groups = {};
+                currentGraphNodes.forEach(node => {
+                    const gid = node.group;
+                    if (!groups[gid]) groups[gid] = [];
+                    try {
+                        const pos = network.getPositions([node.id])[node.id];
+                        if (pos) {
+                            groups[gid].push({ x: pos.x, y: pos.y, color: (node.color && node.color.background) ? node.color.background : "#00F0FF" });
+                        }
+                    } catch (e) {}
+                });
+
+                Object.keys(groups).forEach(gid => {
+                    const pts = groups[gid];
+                    if (pts.length === 0) return;
+
+                    let sumX = 0, sumY = 0;
+                    pts.forEach(p => { sumX += p.x; sumY += p.y; });
+                    const cx = sumX / pts.length;
+                    const cy = sumY / pts.length;
+
+                    let maxDist = 0;
+                    pts.forEach(p => {
+                        const d = Math.hypot(p.x - cx, p.y - cy);
+                        if (d > maxDist) maxDist = d;
+                    });
+
+                    const radius = Math.max(maxDist + 35, 55);
+                    const col = pts[0].color;
+
+                    ctx.save();
+                    ctx.setLineDash([6, 6]);
+                    ctx.strokeStyle = col;
+                    ctx.lineWidth = 1.6;
+                    ctx.fillStyle = hexToRgba(col, 0.04);
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.restore();
+                });
+            });
         }
 
         function setupEventListeners() {
@@ -1573,8 +1629,8 @@
                 physicsEnabled = !physicsEnabled;
                 network.setOptions({ physics: { enabled: physicsEnabled } });
                 btnFreeze.innerHTML = physicsEnabled 
-                    ? '<i class="fa-solid fa-pause"></i> Freeze Physics' 
-                    : '<i class="fa-solid fa-play"></i> Resume Physics';
+                    ? '<i class="fa-solid fa-pause"></i> Pause Animation' 
+                    : '<i class="fa-solid fa-play"></i> Resume Animation';
             });
 
             document.getElementById("btn-fit-zoom").addEventListener("click", () => {
@@ -1730,6 +1786,9 @@
                 currentGraphEdges = data.graph_data.edges;
                 populateNodeInspector(currentGraphNodes, currentGraphEdges);
 
+                // Update Reference HUD Overlays (Stats table, Betweenness chart, Insights, Banner)
+                updateHUDOverlays(data, algorithm);
+
                 networkData.nodes.clear();
                 networkData.edges.clear();
                 networkData.nodes.add(data.graph_data.nodes);
@@ -1752,6 +1811,158 @@
                 console.error("API error:", err);
                 if (loading) loading.style.display = "none";
             }
+        }
+
+        function updateHUDOverlays(data, algorithm) {
+            // 1. Dynamic Toolbar Title (Screenshot 1, 2, 3)
+            const titleMap = {
+                "girvan_newman": "Girvan-Newman Algorithm - Detected Communities",
+                "louvain": "Louvain Method - Detected Communities",
+                "spectral": "Spectral Clustering - Community Visualization",
+                "leiden": "Leiden Algorithm - Detected Communities",
+                "lpa": "Label Propagation (LPA) - Detected Communities"
+            };
+            const titleEl = document.getElementById("canvas-status");
+            if (titleEl) {
+                titleEl.textContent = titleMap[algorithm] || `${data.algorithm} - Detected Communities`;
+            }
+
+            // 2. Bottom Info Callout Banner
+            const bannerText = document.getElementById("canvas-bottom-banner-text");
+            if (bannerText && data.explanation) {
+                bannerText.textContent = data.explanation;
+            }
+
+            // 3. Bottom-Left Card: Detected Communities
+            const leftTitle = document.getElementById("hud-left-title");
+            if (leftTitle) {
+                leftTitle.textContent = (algorithm === "spectral") ? "Communities (Spectral Clustering)" : "Detected Communities";
+            }
+            const commsList = document.getElementById("hud-comms-list");
+            if (commsList && data.community_breakdown) {
+                commsList.innerHTML = "";
+                data.community_breakdown.forEach(item => {
+                    const row = document.createElement("div");
+                    row.className = "hud-comm-row";
+                    row.innerHTML = `<span class="hud-dot" style="background-color: ${item.color};"></span> Community ${item.id} (${item.size} nodes)`;
+                    commsList.appendChild(row);
+                });
+            }
+            const edgeSummaryText = document.getElementById("hud-edge-summary-text");
+            if (edgeSummaryText) {
+                if (data.inter_edges_count !== undefined && (algorithm === "girvan_newman" || data.inter_edges_count > 0)) {
+                    edgeSummaryText.textContent = `Inter-community edges (${data.inter_edges_count} total)`;
+                } else {
+                    edgeSummaryText.textContent = `Edges (${data.num_edges || 21} total)`;
+                }
+            }
+
+            // 4. Right HUD Panel Cards
+            const cardStats = document.getElementById("card-comm-stats");
+            const cardBetweenness = document.getElementById("card-edge-betweenness");
+            const cardInsights = document.getElementById("card-key-insights");
+
+            if (algorithm === "girvan_newman") {
+                // Screenshot 1: Stats table + Edge Betweenness distribution
+                if (cardStats) cardStats.style.display = "block";
+                if (cardBetweenness) cardBetweenness.style.display = "block";
+                if (cardInsights) cardInsights.style.display = "none";
+                populateHUDStatsTable(data.community_stats || []);
+                renderEdgeBetweennessChart(data.edge_betweenness || []);
+            } else if (algorithm === "spectral") {
+                // Screenshot 3: Key Insights card
+                if (cardStats) cardStats.style.display = "none";
+                if (cardBetweenness) cardBetweenness.style.display = "none";
+                if (cardInsights) cardInsights.style.display = "block";
+                populateHUDInsights(data.insights || []);
+            } else {
+                // Louvain / Leiden / LPA (Screenshot 2): Stats table + Key Insights
+                if (cardStats) cardStats.style.display = "block";
+                if (cardBetweenness) cardBetweenness.style.display = "none";
+                if (cardInsights) cardInsights.style.display = "block";
+                populateHUDStatsTable(data.community_stats || []);
+                populateHUDInsights(data.insights || []);
+            }
+        }
+
+        function populateHUDStatsTable(stats) {
+            const tbody = document.getElementById("hud-stats-tbody");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+            stats.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><span class="hud-dot" style="background-color: ${item.color};"></span> ${item.name}</td>
+                    <td>${item.nodes}</td>
+                    <td>${item.internal_edges}</td>
+                    <td>${item.density}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function populateHUDInsights(insights) {
+            const ul = document.getElementById("hud-insights-ul");
+            if (!ul) return;
+            ul.innerHTML = "";
+            insights.forEach(text => {
+                const li = document.createElement("li");
+                li.textContent = text;
+                ul.appendChild(li);
+            });
+        }
+
+        function renderEdgeBetweennessChart(betweennessList) {
+            const canvas = document.getElementById("canvas-edge-betweenness");
+            if (!canvas || !betweennessList || betweennessList.length === 0) return;
+            const ctx = canvas.getContext("2d");
+            const dpr = window.devicePixelRatio || 1;
+            const W = canvas.clientWidth || 265;
+            const H = canvas.clientHeight || 90;
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            ctx.scale(dpr, dpr);
+
+            ctx.clearRect(0, 0, W, H);
+
+            const maxVal = Math.max(...betweennessList.map(e => e.score), 0.1);
+            const padding = { top: 8, right: 8, bottom: 18, left: 24 };
+            const chartW = W - padding.left - padding.right;
+            const chartH = H - padding.top - padding.bottom;
+            const nBars = betweennessList.length;
+            const barWidth = Math.max(3, (chartW / nBars) - 3);
+
+            // Y Axis labels & subtle grid lines
+            ctx.fillStyle = "#6B7280";
+            ctx.font = "8.5px 'JetBrains Mono', monospace";
+            ctx.textAlign = "right";
+            const yTicks = [0, maxVal * 0.5, maxVal];
+            yTicks.forEach(val => {
+                const y = padding.top + chartH - (val / maxVal) * chartH;
+                ctx.fillText(val.toFixed(1), padding.left - 3, y + 3);
+                ctx.strokeStyle = "rgba(255,255,255,0.06)";
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(W - padding.right, y);
+                ctx.stroke();
+            });
+
+            // Draw betweenness bars
+            betweennessList.forEach((item, i) => {
+                const x = padding.left + i * (chartW / nBars) + 2;
+                const bH = (item.score / maxVal) * chartH;
+                const y = padding.top + chartH - bH;
+
+                ctx.fillStyle = item.is_inter ? "#FF453A" : "#00F0FF";
+                ctx.fillRect(x, y, barWidth, bH);
+            });
+
+            // Baseline
+            ctx.strokeStyle = "rgba(255,255,255,0.15)";
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top + chartH);
+            ctx.lineTo(W - padding.right, padding.top + chartH);
+            ctx.stroke();
         }
 
         function renderCommunityBreakdown(breakdown) {
